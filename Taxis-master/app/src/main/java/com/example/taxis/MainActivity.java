@@ -2,13 +2,19 @@ package com.example.taxis;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 
@@ -25,6 +31,7 @@ import com.google.android.gms.maps.model.Marker;
 
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -38,7 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,NavigationView.OnNavigationItemSelectedListener {
 
     private int MY_PERMISSIONS_REQUEST_READ_CONTACTS;
     private FirebaseDatabase firebaseDatabase;
@@ -47,9 +54,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mapa;
     private ArrayList<Marker> tmpRealTimeMarker = new ArrayList<>();
     private ArrayList<Marker> realTimeMarker = new ArrayList<>();
-    private String usuario = "usuario1001";
+    private String usuario = "usuario10012";
     private int tiempo = 5000;
     Handler handler = new Handler();
+    public NavigationView navView;
+    DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +66,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         //UUID.randomUUID().toString();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.home);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+        drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        navView = (NavigationView)findViewById(R.id.nav_view);
+        navView.setNavigationItemSelectedListener(this);
         inicializarFirebase();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         subirFirebaseLatLong();
@@ -170,5 +188,49 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }
                 });
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+                drawerLayout.openDrawer(GravityCompat.START);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        Fragment fragment = null;
+        switch (menuItem.getItemId()) {
+            case R.id.menu_actividad:
+                fragment = new Registro_Actividad();
+
+                Toast.makeText(this.getApplicationContext(),"Click Opcion 1", Toast.LENGTH_LONG).show();
+                break;
+            case R.id.menu_distancia:
+                fragment = new Registro_Actividad();
+                Toast.makeText(this.getApplicationContext(),"Click Opcion 2", Toast.LENGTH_LONG).show();
+                break;
+            case R.id.menu_ruta:
+                fragment = new Registro_Actividad();
+                Toast.makeText(this.getApplicationContext(),"Click Opcion 3", Toast.LENGTH_LONG).show();
+                break;
+
+        }
+        if(fragment != null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.map, fragment)
+                    .commit();
+            menuItem.setChecked(true);
+            getSupportActionBar().setTitle(menuItem.getTitle());
+        }
+
+        getSupportActionBar().setTitle(menuItem.getTitle());
+        drawerLayout.closeDrawers();
+        return false;
     }
 }
